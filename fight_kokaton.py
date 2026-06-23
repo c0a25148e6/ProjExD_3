@@ -214,7 +214,6 @@ def main():
     score = Score() # scoreインスタンス作成
     exps = []
     clock = pg.time.Clock()
-    tmr = 0
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -274,7 +273,7 @@ def main():
             exp.update(screen)
         score.update(screen) # scoreを画面に表示
         pg.display.update()
-        tmr += 1
+        
         clock.tick(50)
 
 
