@@ -172,7 +172,8 @@ def main():
     #     bomb = Bomb((255, 0, 0), 10)
     #     bombs.append(bomb)
     bombs = [Bomb((255, 0, 0), 10) for _ in range(NUM_OF_BOMBS)]
-    beam = None  # ゲーム初期化時にはビームは存在しない
+    # beam = None  # ゲーム初期化時にはビームは存在しない
+    beams = []
     score = Score() # scoreインスタンス作成
     clock = pg.time.Clock()
     tmr = 0
@@ -182,7 +183,8 @@ def main():
                 return
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 # スペースキー押下でBeamクラスのインスタンス生成
-                beam = Beam(bird)            
+                # beam = Beam(bird)    
+                beams.append(Beam(bird)) # beamをリストに追加     
         screen.blit(bg_img, [0, 0])
         
 # こうかとんと爆弾の衝突判定
@@ -199,19 +201,26 @@ def main():
         
         # 爆弾とビームの衝突判定
         for i, bomb in enumerate(bombs): # enumerateを使ってインデックス(i)を取得
-            if bomb is not None and beam is not None:
-                if beam.rct.colliderect(bomb.rct):
-                    beam = None
-                    bombs[i] = None # 当たった爆弾をNoneにする
-                    bird.change_img(6, screen) # こうかとんが喜ぶ
-                    score.score += 1 # score追加
+            for j,beam in enumerate(beams):
+                if bomb is not None and beam is not None:
+                    if beam.rct.colliderect(bomb.rct):
+                        beams[j] = None # 当たったbeamをNoneにする
+                        bombs[i] = None # 当たった爆弾をNoneにする
+                        bird.change_img(6, screen) # こうかとんが喜ぶ
+                        score.score += 1 # score追加
 
         # Noneになった（撃ち落とされた）爆弾をリストから取り除く
         bombs = [bomb for bomb in bombs if bomb is not None]
+        
+        # Noneになったビームと、画面外に出たビームをリストから取り除く
+        beams = [beam for beam in beams if beam is not None]
+        beams = [beam for beam in beams if check_bound(beam.rct) == (True, True)]
 
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
-        if beam is not None:
+            
+        # ビームの描画（リスト内のすべてのビームをupdateする）
+        for beam in beams:
             beam.update(screen)
             
         # 爆弾の描画（リストに残っている爆弾をすべてupdateする）
