@@ -168,7 +168,8 @@ def main():
         
         if bomb is not None:
             if beam is not None:
-                if beam.rct.colliderect(bomb.rct):
+                if beam.rct.colliderect(bomb.rct): # beamで爆弾を打ち落としたら
+                    bird.change_img(6, screen) # こうかとんが喜ぶ
                     beam = None
                     bomb = None
 
