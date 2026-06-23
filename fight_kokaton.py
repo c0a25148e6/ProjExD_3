@@ -159,6 +159,28 @@ class Score:
         """
         self.img = self.fonto.render(f"Score: {self.score}", 0, self.color)
         screen.blit(self.img, self.rct)
+        
+        
+class Explosion:
+    """
+    爆弾打ち落とし時の爆発エフェクトクラス
+    """
+    def __init__(self, bomb: Bomb, life: int):
+        img = pg.image.load("fig/explosion.gif")
+        # 元の画像と、上下左右反転させた画像の2つをリストに格納
+        self.imgs = [img, pg.transform.flip(img, True, True)]
+        self.rct = self.imgs[0].get_rect()
+        self.rct.center = bomb.rct.center  # 爆発位置を爆弾がいた位置に設定
+        self.life = life  # 爆発の表示時間
+
+    def update(self, screen: pg.Surface):
+        """
+        爆発時間を減算し、交互に画像を切り替えて描画する
+        """
+        self.life -= 1
+        if self.life > 0:
+            # lifeの値を10で割った余りを使うことで、チラつきを抑えて画像を切り替える
+            screen.blit(self.imgs[self.life // 10 % 2], self.rct)
 
 
 def main():
@@ -175,6 +197,7 @@ def main():
     # beam = None  # ゲーム初期化時にはビームは存在しない
     beams = []
     score = Score() # scoreインスタンス作成
+    exps = []
     clock = pg.time.Clock()
     tmr = 0
     while True:
@@ -204,6 +227,7 @@ def main():
             for j,beam in enumerate(beams):
                 if bomb is not None and beam is not None:
                     if beam.rct.colliderect(bomb.rct):
+                        exps.append(Explosion(bomb, 50))
                         beams[j] = None # 当たったbeamをNoneにする
                         bombs[i] = None # 当たった爆弾をNoneにする
                         bird.change_img(6, screen) # こうかとんが喜ぶ
@@ -215,6 +239,9 @@ def main():
         # Noneになったビームと、画面外に出たビームをリストから取り除く
         beams = [beam for beam in beams if beam is not None]
         beams = [beam for beam in beams if check_bound(beam.rct) == (True, True)]
+        
+        # lifeが0より大きい（まだ爆発中の）エフェクトだけを残す
+        exps = [exp for exp in exps if exp.life > 0]
 
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
@@ -226,6 +253,10 @@ def main():
         # 爆弾の描画（リストに残っている爆弾をすべてupdateする）
         for bomb in bombs:
             bomb.update(screen)
+            
+        # 爆発エフェクトの描画（score.update(screen) の直前あたり）
+        for exp in exps:
+            exp.update(screen)
         score.update(screen) # scoreを画面に表示
         pg.display.update()
         tmr += 1
