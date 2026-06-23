@@ -139,6 +139,26 @@ class Bomb:
             self.vy *= -1
         self.rct.move_ip(self.vx, self.vy)
         screen.blit(self.img, self.rct)
+        
+        
+class Score:
+    """
+    打ち落とした爆弾の数を表示するスコアクラス
+    """
+    def __init__(self):
+        self.fonto = pg.font.Font(None, 50)  # フォントの設定
+        self.color = (0, 0, 255)  # 文字色の設定：青
+        self.score = 0  # スコアの初期値の設定：0
+        self.img = self.fonto.render(f"Score: {self.score}", 0, self.color)
+        self.rct = self.img.get_rect()
+        self.rct.center = (100, HEIGHT - 50)  # 画面左下に表示
+
+    def update(self, screen: pg.Surface):
+        """
+        現在のスコアを表示させる文字列Surfaceの生成と描画
+        """
+        self.img = self.fonto.render(f"Score: {self.score}", 0, self.color)
+        screen.blit(self.img, self.rct)
 
 
 def main():
@@ -153,6 +173,7 @@ def main():
     #     bombs.append(bomb)
     bombs = [Bomb((255, 0, 0), 10) for _ in range(NUM_OF_BOMBS)]
     beam = None  # ゲーム初期化時にはビームは存在しない
+    score = Score() # scoreインスタンス作成
     clock = pg.time.Clock()
     tmr = 0
     while True:
@@ -183,6 +204,7 @@ def main():
                     beam = None
                     bombs[i] = None # 当たった爆弾をNoneにする
                     bird.change_img(6, screen) # こうかとんが喜ぶ
+                    score.score += 1 # score追加
 
         # Noneになった（撃ち落とされた）爆弾をリストから取り除く
         bombs = [bomb for bomb in bombs if bomb is not None]
@@ -195,6 +217,7 @@ def main():
         # 爆弾の描画（リストに残っている爆弾をすべてupdateする）
         for bomb in bombs:
             bomb.update(screen)
+        score.update(screen) # scoreを画面に表示
         pg.display.update()
         tmr += 1
         clock.tick(50)
